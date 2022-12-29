@@ -1,0 +1,52 @@
+<%= form_with(model: post) do |form| %>
+  <% if post.errors.any? %>
+    <div style="color: #404040">
+      <h2><%= pluralize(post.errors.count, "error") %> prohibited this post from being saved:</h2>
+
+      <ul>
+        <% post.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :title, style: "display: block" %>
+    <%= form.text_field :title %>
+  </div>
+
+  <div>
+    <%= form.label :description, style: "display: block" %>
+    <%= form.text_area :description %>
+  </div>
+
+  <div>
+    <%= form.label :image, style: "display: block" %>
+    <% if post.image.attached? %>
+      <%= image_tag post.image,size:"200x100"%>
+      <%= form.file_field :image, id: "image-input" %>
+      <%else %>
+      <%= form.file_field :image, id: "image-input" %>
+    <% end %>
+    <img id="preview-image" style="width: 200px;" alt="" src="">
+
+    <script>
+        const input = document.getElementById('image-input');
+        const preview = document.getElementById('preview-image');
+
+        input.addEventListener('change', function() {
+            const file = this.files[0];
+            const reader = new FileReader();
+            reader.onload = function() {
+                preview.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+
+        });
+    </script>
+    <div>
+    <%= form.submit %>
+  </div>
+<% end %>
+</div>
