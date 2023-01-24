@@ -1,10 +1,142 @@
+<style>
+#error { display: none; color: red}
+</style>
 <p style="color: green"><%= notice %></p>
-
+<h2>Post</h2>
 <%= render @post %>
 <div>
-
   <%= link_to "Edit this post", edit_post_path(@post) %> |
   <%= link_to "Back to posts", posts_path %>
-
-  <%= button_to "Destroy this post", @post, method: :delete %>
+  <%= button_to "Destroy this post", @post, method: :delete ,data: {
+    turbo_method: :delete,
+    turbo_confirm: "Are you sure You want to Delete this post?"
+  } %>
+</div> 
+<div id="comments">
+  <% @post.comments.order(created_at: :desc).each do |comment| %>
+    <%= l(comment.created_at, format: '%d %b,%Y %I:%M %P') %>
+    <p>
+      <strong>Comment:</strong>
+      <%= comment.comments %>
+    </p>
+    <%= button_to "Delete Comment", [comment.post, comment], method: :delete, remote: true, data: 
+    {  turbo_confirm: "Are you sure You want to Delete this comment?" } %>
+    <% end %>
 </div>
+
+<h2> Add a comment:</h2>
+<%= form_with model: [ @post, comment = @post.comments.build ], remote: true, id: "comment_form" do |form| %>                                                                                                                                                                              
+  <p>
+    <%= form.label :comment %><br>
+    <%= form.text_area :comments, id: 'comment_comments' %>
+
+  <div id="error" style="display: none;">
+  "Comment can't be blank"
+  </div>
+
+  <p>
+  <%= form.submit %>
+  </p>
+<% end %>
+
+<script>
+$(document).ready(function() {
+  $("#comment_form").submit(function(e) {
+    e.preventDefault();
+    var form = $(this);
+    var url = form.attr("action");
+    var data = form.serialize();
+    
+    var comment = $("#comment_comments");
+    if (comment.val() == "" || comment.val() == undefined) {
+      $("#error").show();
+    } else {
+      $.ajax({
+        type: "POST",
+        url: url\,
+        data: data,
+        success: function(response) {
+          if (response.status === "success") {
+            var p = $("<p>").html(response.comment.comments);
+            var btn = $("<button>").html("Delete Comment")
+                                   .addClass("delete-comment")
+                                   .attr("data-id", response.comment.id);
+            p.append(btn);
+            $("#comments").append(p);
+            form.find("textarea").val("");
+          } else {
+            var errorDiv = $("<div>").html(response.error)
+                                     .addClass("error-message");
+            form.append(errorDiv);
+          }
+        }
+      });
+    }
+  });
+
+  <script>
+  var formSubmitted = false;
+  document.addEventListener("DOMContentLoaded", function() {
+    document.querySelector("#comment_form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      var form = this;
+      var url = form.getAttribute("action");
+      var data = new FormData(form);
+      
+      var comment = document.getElementById("comment_comments");
+      if (comment.value == "" || comment.value == undefined) {
+        document.getElementById("error").style.display = "block";
+      } else  (!formSubmitted) {
+        formSubmitted = true;
+        document.getElementById("error").style.display = "none";
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+            var response = JSON.parse(xhr.response);
+            if (response.status === "success") {
+              var p = document.createElement("p");
+              p.innerHTML = response.comment.comments;
+              var btn = document.createElement("button");
+              btn.innerHTML = "Delete Comment";
+              btn.setAttribute("class", "delete-comment");
+              btn.setAttribute("data-id", response.comment.id);
+              p.appendChild(btn);
+              document.getElementById("comments").appendChild(p);
+              form.querySelector("textarea").value = "";
+              formSubmitted = false;
+            } else {
+              var errorDiv = document.createElement("div");
+              errorDiv.innerHTML = response.error;
+              errorDiv.setAttribute("class", "error-message");
+              form.appendChild(errorDiv);
+              formSubmitted = false;
+            }
+          }
+        };
+        xhr.send(data);
+      }
+    });     
+  
+      document.addEventListener("click", function(e) {
+        if (e.target.classList.contains("delete-comment")) {
+          var button = e.target;
+          var url = "/comments/" + button.getAttribute("data-id");
+          var xhr = new XMLHttpRequest();
+          xhr.open("DELETE", url, true);
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+              var response = JSON.parse(xhr.response);
+              if (response.status === "success") {
+                button.closest("p").remove();
+              } else {
+                alert(response.error);
+              }
+            }
+          };
+          xhr.send();
+        }
+      });
+    });
+    </script>
+  

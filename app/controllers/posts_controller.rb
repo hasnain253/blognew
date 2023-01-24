@@ -3,11 +3,12 @@ class PostsController < ApplicationController
 
   # GET /posts or /posts.json
   def index
-    @posts = Post.all
+    @posts = Post.all.order("created_at DESC")
   end
 
   # GET /posts/1 or /posts/1.json
   def show
+
   end
 
   # GET /posts/new
@@ -17,6 +18,7 @@ class PostsController < ApplicationController
 
   # GET /posts/1/edit
   def edit
+    
   end
 
   # POST /posts or /posts.json
@@ -33,7 +35,6 @@ class PostsController < ApplicationController
       end
     end
   end
-
   # PATCH/PUT /posts/1 or /posts/1.json
   def update
     respond_to do |format|
@@ -65,6 +66,6 @@ class PostsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def post_params
-      params.require(:post).permit(:title, :description, :image)
+      params.require(:post).permit(:title, :description, images:[])
     end
 end

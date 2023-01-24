@@ -10,11 +10,10 @@
   </p>
 
   <p>
-    <strong>Image:</strong>
-    <% if post.image.attached? %>
-      <%= image_tag post.image ,size:"200x100"%>
-    <% end %>
-
-  </p>
+  <strong>Images:</strong>
+  <% post.images.each do |image| %>
+    <%= image_tag image, size: "200x100" %>
+  <% end %>
+</p>
 
 </div>

@@ -22,31 +22,50 @@
   </div>
 
   <div>
-    <%= form.label :image, style: "display: block" %>
-    <% if post.image.attached? %>
-      <%= image_tag post.image,size:"200x100"%>
-      <%= form.file_field :image, id: "image-input" %>
-      <%else %>
-      <%= form.file_field :image, id: "image-input" %>
+    <div id="error-message" style="display: none;">Error: Please select a JPG or PNG image file</div>
+    <%= form.label :images, style: "display: block" %>
+    <% if post.images.attached? %>
+      <div id="exist-images">
+        <% post.images.each do |image| %>
+          <%= image_tag image, size: "200x100" %>
+        <% end %>
+      </div>
     <% end %>
-    <img id="preview-image" style="width: 200px;" alt="" src="">
+    <%= form.file_field :images, accept: "image/jpeg, image/png", id: "image-input", multiple: true %>
+    <div id="preview-images"></div>
+  </div>
 
-    <script>
-        const input = document.getElementById('image-input');
-        const preview = document.getElementById('preview-image');
-
-        input.addEventListener('change', function() {
-            const file = this.files[0];
-            const reader = new FileReader();
-            reader.onload = function() {
-                preview.src = reader.result;
-            };
-            reader.readAsDataURL(file);
-
-        });
-    </script>
-    <div>
+  <div>
     <%= form.submit %>
   </div>
 <% end %>
-</div>
+
+
+<script>
+const imageInput = document.getElementById("image-input");
+const errorMessage = document.getElementById("error-message");
+const previewImages = document.getElementById("preview-images");
+
+imageInput.addEventListener("change", function () {
+  for (const file of imageInput.files) {
+    if (!file.type.match("image/jpeg") && !file.type.match("image/png")) {
+      errorMessage.style.display = "block";
+      imageInput.files = new DataTransfer().files;
+    } else {
+      errorMessage.style.display = "none";
+      const reader = new FileReader();
+      reader.addEventListener("load", function () {
+        const dataURL = reader.result;
+        const img = document.createElement("img");
+        img.src = dataURL;
+        img.style.width = "150px";
+        previewImages.appendChild(img);
+      });
+      reader.readAsDataURL(file);
+    }
+  }
+  document.getElementById("exist-images").style.display = "none";
+  previewImages.style.display = "block";
+});
+
+    </script>
